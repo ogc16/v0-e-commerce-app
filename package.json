@@ -1,0 +1,36 @@
+{
+  "name": "ecommerce-app",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@react-navigation/native": "^7.2.2",
+    "expo": "^55.0.17",
+    "expo-constants": "^55.0.15",
+    "expo-font": "^55.0.6",
+    "expo-linking": "^55.0.14",
+    "expo-router": "^55.0.13",
+    "expo-status-bar": "^55.0.5",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-native": "^0.85.2",
+    "react-native-gesture-handler": "^2.31.1",
+    "react-native-reanimated": "^4.3.0",
+    "react-native-safe-area-context": "^5.7.0",
+    "react-native-screens": "^4.24.0",
+    "react-native-web": "^0.21.2",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "^19",
+    "babel-preset-expo": "^55.0.18",
+    "typescript": "^5.7.3"
+  }
+}
