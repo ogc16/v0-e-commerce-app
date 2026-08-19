@@ -31,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
       activeOpacity={0.9}
     >
       <View style={styles.imageContainer}>
-        <Image source={{ uri: product.image }} style={styles.image} />
+        <Image source={{ uri: product.image ?? undefined }} style={styles.image} />
         <View style={styles.ratingBadge}>
           <Feather name="star" size={12} color="#F59E0B" />
           <Text style={styles.ratingText}>{product.rating}</Text>

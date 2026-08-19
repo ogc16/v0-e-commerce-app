@@ -20,7 +20,7 @@ function CartItemCard({ item }: CartItemCardProps) {
 
   return (
     <View style={styles.cartItem}>
-      <Image source={{ uri: item.image }} style={styles.itemImage} />
+      <Image source={{ uri: item.image ?? undefined }} style={styles.itemImage} />
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>
           {item.name}

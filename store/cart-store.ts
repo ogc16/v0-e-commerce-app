@@ -6,9 +6,9 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
-  category: 'household' | 'grocery' | 'fastfood';
-  description: string;
+  image: string | null;
+  category: string;
+  description: string | null;
   rating: number;
 }
 

@@ -39,3 +39,5 @@ next.user-config.*
 
 # OS
 Thumbs.db
+
+/lib/generated/prisma

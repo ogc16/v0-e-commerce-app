@@ -13,9 +13,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { getProductById, categories } from '@/lib/api';
 import { useCartStore } from '@/store/cart-store';
-import { Database } from '@/lib/types';
-
-type Product = Database['public']['Tables']['products']['Row'];
+import type { Product } from '@prisma/client';
 
 const { width } = Dimensions.get('window');
 
@@ -69,7 +67,7 @@ export default function ProductDetailScreen() {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Product Image */}
-        <Image source={{ uri: product.image }} style={styles.image} />
+        <Image source={{ uri: product.image ?? undefined }} style={styles.image} />
 
         {/* Product Info */}
         <View style={styles.content}>

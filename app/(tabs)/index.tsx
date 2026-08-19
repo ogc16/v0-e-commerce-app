@@ -13,18 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ProductCard } from '@/components/ProductCard';
-import { getProducts } from '@/lib/api';
-import { Database } from '@/lib/types';
-
-type Product = Database['public']['Tables']['products']['Row'];
+import { getProducts, categories } from '@/lib/api';
+import type { Product } from '@prisma/client';
 
 const { width } = Dimensions.get('window');
-
-const categories = [
-  { id: 'household', name: 'Household', icon: 'home', color: '#3B82F6' },
-  { id: 'grocery', name: 'Grocery', icon: 'shopping-bag', color: '#10B981' },
-  { id: 'fastfood', name: 'Fast Food', icon: 'coffee', color: '#F59E0B' },
-];
 
 export default function HomeScreen() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
