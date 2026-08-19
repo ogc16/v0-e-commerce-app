@@ -57,7 +57,7 @@ export default function ProductDetailScreen() {
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
     }
-    router.push('/cart');
+    router.push('/(tabs)/cart');
   };
 
   const incrementQuantity = () => setQuantity((q) => q + 1);

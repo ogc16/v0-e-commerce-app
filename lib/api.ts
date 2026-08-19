@@ -10,8 +10,8 @@ export interface Product {
   badge: string | null;
   rating: number;
   stock: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Order {
@@ -22,8 +22,8 @@ export interface Order {
   status: string;
   shippingAddress: string | null;
   paymentMethod: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Pagination {
@@ -76,8 +76,8 @@ export async function getProducts(
     if (options?.sort) params.set('sort', options.sort);
     if (options?.page) params.set('page', String(options.page));
     if (options?.limit) params.set('limit', String(options.limit));
-    if (options?.minPrice) params.set('minPrice', String(options.minPrice));
-    if (options?.maxPrice) params.set('maxPrice', String(options.maxPrice));
+    if (options?.minPrice !== undefined) params.set('minPrice', String(options.minPrice));
+    if (options?.maxPrice !== undefined) params.set('maxPrice', String(options.maxPrice));
     if (options?.badge) params.set('badge', options.badge);
 
     const query = params.toString();

@@ -1,17 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User } from './auth-utils';
 import {
   getCurrentUser,
   signIn as authSignIn,
   signUp as authSignUp,
   signOut as authSignOut,
 } from './auth-utils';
-
-interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  phone: string | null;
-}
 
 interface AuthContextType {
   user: User | null;
