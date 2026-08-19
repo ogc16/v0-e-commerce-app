@@ -13,8 +13,8 @@ function validateEnv(): Env {
   
   if (!result.success) {
     console.error('❌ Invalid environment variables:');
-    result.error.errors.forEach((err) => {
-      console.error(`  - ${err.path.join('.')}: ${err.message}`);
+    result.error.issues.forEach((issue) => {
+      console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
     });
     throw new Error('Invalid environment variables');
   }
