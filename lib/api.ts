@@ -7,6 +7,7 @@ export interface Product {
   price: number;
   image: string | null;
   category: string;
+  badge: string | null;
   rating: number;
   stock: number;
   createdAt: Date;
@@ -25,6 +26,18 @@ export interface Order {
   updatedAt: Date;
 }
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface ProductsResponse {
+  products: Product[];
+  pagination: Pagination;
+}
+
 export const categories = [
   { id: 'household', name: 'Household', icon: 'home', color: '#3B82F6' },
   { id: 'grocery', name: 'Grocery', icon: 'shopping-bag', color: '#10B981' },
@@ -32,9 +45,18 @@ export const categories = [
 ];
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = await (await import('./auth-utils')).getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options?.headers as Record<string, string>,
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
+    headers,
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -43,16 +65,26 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export async function getProducts(category?: string): Promise<Product[]> {
+export async function getProducts(
+  category?: string,
+  options?: { search?: string; sort?: string; page?: number; limit?: number; minPrice?: number; maxPrice?: number; badge?: string }
+): Promise<ProductsResponse> {
   try {
-    const query = category ? `?category=${category}` : '';
-    const { products } = await apiFetch<{ products: Product[] }>(
-      `/api/products${query}`
-    );
-    return products;
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (options?.search) params.set('search', options.search);
+    if (options?.sort) params.set('sort', options.sort);
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.minPrice) params.set('minPrice', String(options.minPrice));
+    if (options?.maxPrice) params.set('maxPrice', String(options.maxPrice));
+    if (options?.badge) params.set('badge', options.badge);
+
+    const query = params.toString();
+    return await apiFetch<ProductsResponse>(`/api/products${query ? `?${query}` : ''}`);
   } catch (error) {
     console.error('Error fetching products:', error);
-    return [];
+    return { products: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
   }
 }
 
@@ -68,15 +100,39 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 }
 
-export async function searchProducts(query: string): Promise<Product[]> {
+export async function searchProducts(
+  query: string,
+  options?: { category?: string; sort?: string; page?: number; limit?: number }
+): Promise<ProductsResponse> {
   try {
-    const { products } = await apiFetch<{ products: Product[] }>(
-      `/api/products/search?q=${encodeURIComponent(query)}`
-    );
-    return products;
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (options?.category) params.set('category', options.category);
+    if (options?.sort) params.set('sort', options.sort);
+    if (options?.page) params.set('page', String(options.page));
+    if (options?.limit) params.set('limit', String(options.limit));
+
+    const qs = params.toString();
+    return await apiFetch<ProductsResponse>(`/api/products/search${qs ? `?${qs}` : ''}`);
   } catch (error) {
     console.error('Error searching products:', error);
-    return [];
+    return { products: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
+  }
+}
+
+export async function createCheckoutSession(items: { id: string; quantity: number }[], shippingAddress?: string) {
+  try {
+    const { order, clientSecret } = await apiFetch<{ order: Order; clientSecret: string | null }>(
+      '/api/checkout/create-session',
+      {
+        method: 'POST',
+        body: JSON.stringify({ items, shippingAddress }),
+      }
+    );
+    return { order, clientSecret };
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    throw error;
   }
 }
 

@@ -11,7 +11,9 @@ export default function RootLayout() {
         <AuthProvider>
           <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(protected)" />
             <Stack.Screen
               name="product/[id]"
               options={{
@@ -26,16 +28,6 @@ export default function RootLayout() {
               name="category/[id]"
               options={{
                 headerShown: true,
-                headerBackTitle: 'Back',
-                headerStyle: { backgroundColor: '#FFFFFF' },
-                headerTintColor: '#10B981',
-              }}
-            />
-            <Stack.Screen
-              name="checkout"
-              options={{
-                headerShown: true,
-                headerTitle: 'Checkout',
                 headerBackTitle: 'Back',
                 headerStyle: { backgroundColor: '#FFFFFF' },
                 headerTintColor: '#10B981',

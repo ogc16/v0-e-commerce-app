@@ -157,7 +157,7 @@ export default function CartScreen() {
       <View style={styles.checkoutContainer}>
         <TouchableOpacity
           style={styles.checkoutButton}
-          onPress={() => router.push('/checkout')}
+          onPress={() => router.push('/(protected)/checkout')}
         >
           <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
           <Feather name="arrow-right" size={20} color="#FFFFFF" />

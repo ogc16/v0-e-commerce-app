@@ -4,21 +4,23 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '@/lib/auth';
 
 interface MenuItemProps {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   subtitle?: string;
   showBadge?: boolean;
+  onPress?: () => void;
 }
 
-function MenuItem({ icon, title, subtitle, showBadge }: MenuItemProps) {
+function MenuItem({ icon, title, subtitle, showBadge, onPress }: MenuItemProps) {
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIcon}>
           <Feather name={icon} size={20} color="#10B981" />
@@ -41,10 +43,47 @@ function MenuItem({ icon, title, subtitle, showBadge }: MenuItemProps) {
 }
 
 export default function ProfileScreen() {
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace('/(auth)/sign-in');
+  };
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Profile</Text>
+        </View>
+        <View style={styles.guestContainer}>
+          <View style={styles.guestIcon}>
+            <Feather name="user" size={48} color="#D1D5DB" />
+          </View>
+          <Text style={styles.guestTitle}>Sign in to your account</Text>
+          <Text style={styles.guestSubtitle}>
+            Track orders, save favorites, and checkout faster
+          </Text>
+          <TouchableOpacity
+            style={styles.signInButton}
+            onPress={() => router.push('/(auth)/sign-in')}
+          >
+            <Text style={styles.signInButtonText}>Sign In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.signUpButton}
+            onPress={() => router.push('/(auth)/sign-up')}
+          >
+            <Text style={styles.signUpButtonText}>Create Account</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
           <TouchableOpacity style={styles.settingsButton}>
@@ -52,40 +91,18 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
         <View style={styles.profileCard}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200' }}
-            style={styles.avatar}
-          />
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>
+              {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+            </Text>
+          </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileEmail}>john.doe@email.com</Text>
-          </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Feather name="edit-2" size={18} color="#10B981" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>15</Text>
-            <Text style={styles.statLabel}>Orders</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>3</Text>
-            <Text style={styles.statLabel}>Wishlist</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>$245</Text>
-            <Text style={styles.statLabel}>Saved</Text>
+            <Text style={styles.profileName}>{user.name || 'User'}</Text>
+            <Text style={styles.profileEmail}>{user.email}</Text>
           </View>
         </View>
 
-        {/* Menu Sections */}
         <View style={styles.menuSection}>
           <Text style={styles.menuSectionTitle}>Orders</Text>
           <View style={styles.menuCard}>
@@ -122,14 +139,13 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
           <Feather name="log-out" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
         <View style={styles.version}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={styles.versionText}>ShopEase v1.0.0</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -167,6 +183,64 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  guestContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  guestIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  guestTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  guestSubtitle: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  signInButton: {
+    backgroundColor: '#10B981',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  signInButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  signUpButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  signUpButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -181,10 +255,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  avatar: {
+  avatarPlaceholder: {
     width: 64,
     height: 64,
     borderRadius: 32,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   profileInfo: {
     flex: 1,
@@ -199,46 +281,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     marginTop: 4,
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#F0FDF4',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#E5E7EB',
   },
   menuSection: {
     marginTop: 24,

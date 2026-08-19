@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Dimensions,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,17 +15,25 @@ import { ProductCard } from '@/components/ProductCard';
 import { getProducts, categories } from '@/lib/api';
 import type { Product } from '@/lib/api';
 
-const { width } = Dimensions.get('window');
-
 export default function HomeScreen() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [newestProducts, setNewestProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadProducts() {
-      const products = await getProducts();
-      setFeaturedProducts(products.filter((p) => p.rating >= 4.7));
-      setLoading(false);
+      try {
+        const [featured, newest] = await Promise.all([
+          getProducts(undefined, { sort: 'rating', limit: 10 }),
+          getProducts(undefined, { sort: 'newest', limit: 10 }),
+        ]);
+        setFeaturedProducts(featured.products.filter((p) => p.rating >= 4.5));
+        setNewestProducts(newest.products);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setLoading(false);
+      }
     }
     loadProducts();
   }, []);
@@ -34,7 +41,6 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello there!</Text>
@@ -46,16 +52,11 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <TouchableOpacity
-          style={styles.searchBar}
-          onPress={() => router.push('/search')}
-        >
+        <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')}>
           <Feather name="search" size={20} color="#9CA3AF" />
           <Text style={styles.searchPlaceholder}>Search for products...</Text>
         </TouchableOpacity>
 
-        {/* Banner */}
         <View style={styles.banner}>
           <View style={styles.bannerContent}>
             <Text style={styles.bannerTag}>Free Delivery</Text>
@@ -70,36 +71,19 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Categories */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Categories</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
-            </TouchableOpacity>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContainer}>
             {categories.map((category) => (
               <TouchableOpacity
                 key={category.id}
                 style={styles.categoryCard}
                 onPress={() => router.push(`/category/${category.id}`)}
               >
-                <View
-                  style={[
-                    styles.categoryIcon,
-                    { backgroundColor: `${category.color}15` },
-                  ]}
-                >
-                  <Feather
-                    name={category.icon as any}
-                    size={28}
-                    color={category.color}
-                  />
+                <View style={[styles.categoryIcon, { backgroundColor: `${category.color}15` }]}>
+                  <Feather name={category.icon as any} size={28} color={category.color} />
                 </View>
                 <Text style={styles.categoryName}>{category.name}</Text>
               </TouchableOpacity>
@@ -107,11 +91,10 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Featured Products */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Rated</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/search')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
@@ -126,6 +109,22 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {newestProducts.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>New Arrivals</Text>
+              <TouchableOpacity onPress={() => router.push('/search')}>
+                <Text style={styles.seeAll}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.productsGrid}>
+              {newestProducts.slice(0, 4).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
@@ -133,160 +132,29 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  greeting: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  notificationButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginVertical: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchPlaceholder: {
-    marginLeft: 12,
-    fontSize: 15,
-    color: '#9CA3AF',
-  },
-  banner: {
-    flexDirection: 'row',
-    backgroundColor: '#10B981',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    overflow: 'hidden',
-  },
-  bannerContent: {
-    flex: 1,
-  },
-  bannerTag: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#D1FAE5',
-    marginBottom: 8,
-  },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 16,
-    lineHeight: 26,
-  },
-  bannerButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  bannerButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#10B981',
-  },
-  bannerImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    marginLeft: 12,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  seeAll: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#10B981',
-  },
-  categoriesContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  categoryCard: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  categoryIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  categoryName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4B5563',
-  },
-  productsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 12,
-    justifyContent: 'space-between',
-  },
-  bottomPadding: {
-    height: 20,
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
+  greeting: { fontSize: 14, color: '#6B7280', marginBottom: 4 },
+  title: { fontSize: 22, fontWeight: '700', color: '#1F2937' },
+  notificationButton: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  notificationDot: { position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', marginHorizontal: 20, marginVertical: 16, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  searchPlaceholder: { marginLeft: 12, fontSize: 15, color: '#9CA3AF' },
+  banner: { flexDirection: 'row', backgroundColor: '#10B981', marginHorizontal: 20, borderRadius: 16, padding: 20, overflow: 'hidden' },
+  bannerContent: { flex: 1 },
+  bannerTag: { fontSize: 12, fontWeight: '600', color: '#D1FAE5', marginBottom: 8 },
+  bannerTitle: { fontSize: 20, fontWeight: '700', color: '#FFFFFF', marginBottom: 16, lineHeight: 26 },
+  bannerButton: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start' },
+  bannerButtonText: { fontSize: 14, fontWeight: '600', color: '#10B981' },
+  bannerImage: { width: 100, height: 100, borderRadius: 12, marginLeft: 12 },
+  section: { marginTop: 24 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
+  seeAll: { fontSize: 14, fontWeight: '600', color: '#10B981' },
+  categoriesContainer: { paddingHorizontal: 20, gap: 16 },
+  categoryCard: { alignItems: 'center', marginRight: 16 },
+  categoryIcon: { width: 72, height: 72, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  categoryName: { fontSize: 13, fontWeight: '600', color: '#4B5563' },
+  productsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, justifyContent: 'space-between' },
+  bottomPadding: { height: 20 },
 });

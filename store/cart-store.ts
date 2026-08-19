@@ -10,6 +10,8 @@ export interface Product {
   category: string;
   description: string | null;
   rating: number;
+  badge: string | null;
+  stock?: number;
 }
 
 export interface CartItem extends Product {
@@ -24,6 +26,7 @@ interface CartStore {
   clearCart: () => void;
   getTotal: () => number;
   getItemCount: () => number;
+  getCartItems: () => { id: string; quantity: number }[];
 }
 
 export const useCartStore = create<CartStore>()(
@@ -80,9 +83,17 @@ export const useCartStore = create<CartStore>()(
         const state = get();
         return state.items.reduce((count, item) => count + item.quantity, 0);
       },
+
+      getCartItems: () => {
+        const state = get();
+        return state.items.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+        }));
+      },
     }),
     {
-      name: 'cart-storage',
+      name: 'shopease-cart',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

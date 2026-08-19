@@ -16,7 +16,7 @@ export default function CategoryScreen() {
   useEffect(() => {
     async function loadProducts() {
       if (id) {
-        const data = await getProducts(id);
+        const { products: data } = await getProducts(id);
         setProducts(data);
         setLoading(false);
       }
