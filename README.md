@@ -1,35 +1,67 @@
-# v0-e-commerce-app
+# ShopEase
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+A modern grocery and food delivery e-commerce app built with Expo Router and React Native.
 
-## Built with v0
+## Features
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+* **Product Browsing** — Browse products across Household, Grocery, and Fast Food categories
+* **Search & Filter** — Real-time text search with category chip filters
+* **Product Details** — Full product pages with ratings, descriptions, and delivery info
+* **Shopping Cart** — Add/remove items, quantity controls, order summary with delivery fee logic
+* **Checkout Flow** — Payment method selection, delivery time options, order placement
+* **Tab Navigation** — 4-tab layout with live cart badge
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_VXtXknNy3AGWj6lmqGPQ32uzpy1T)
+## Tech Stack
+
+* **Framework:** Expo SDK 53 + React Native 0.79
+* **Navigation:** Expo Router (file-based routing)
+* **State:** Zustand
+* **Language:** TypeScript
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Start the app
+npx expo start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Scan the QR code with Expo Go (Android/iOS) or press `w` for web.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-## Learn More
+```
+app/
+  (tabs)/
+    index.tsx          # Home screen
+    search.tsx         # Search with filters
+    cart.tsx           # Cart management
+    profile.tsx        # User profile
+  product/[id].tsx     # Product detail
+  category/[id].tsx    # Category listing
+  checkout.tsx         # Checkout flow
+components/
+  ProductCard.tsx      # Reusable product card
+data/
+  products.ts         # Product catalog (18 items)
+store/
+  cart-store.ts       # Zustand cart state
+```
 
-To learn more, take a look at the following resources:
+## Screens
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+| Screen | Description |
+|--------|-------------|
+| Home | Greeting, promo banner, categories, featured products |
+| Search | Text search + category filters with product grid |
+| Cart | Item management, quantity controls, order summary |
+| Profile | User info, stats, settings menu |
+| Product Detail | Full product view with add-to-cart |
+| Category | Filtered product grid by category |
+| Checkout | Delivery, payment, and order placement |
 
-<a href="https://v0.app/chat/api/kiro/clone/ogc16/v0-e-commerce-app" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+## License
+
+MIT
