@@ -1,0 +1,26 @@
+{
+  "name": "shopease-server",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx tsx watch index.ts",
+    "start": "npx tsx index.ts",
+    "db:push": "npx prisma db push",
+    "db:generate": "npx prisma generate",
+    "db:seed": "npx tsx seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "jose": "^6.0.11"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "prisma": "^7.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

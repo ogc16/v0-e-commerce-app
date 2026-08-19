@@ -1,6 +1,15 @@
 # ShopEase
 
-A production-ready grocery and food delivery e-commerce app built with Expo SDK 54, React Native 0.81, CockroachDB, and Prisma.
+A production-ready grocery and food delivery e-commerce app with a React Native (Expo) frontend and Node.js backend.
+
+## Architecture
+
+```
+┌─────────────────┐     HTTP/REST     ┌──────────────────┐     Prisma     ┌─────────────┐
+│  Expo React     │ ◄──────────────► │  Express Server  │ ◄────────────► │ CockroachDB │
+│  Native App     │                   │  (API)           │                │             │
+└─────────────────┘                   └──────────────────┘                └─────────────┘
+```
 
 ## Features
 
@@ -9,114 +18,104 @@ A production-ready grocery and food delivery e-commerce app built with Expo SDK 
 * **Product Details** — Full product pages with ratings, descriptions, and delivery info
 * **Persistent Shopping Cart** — Cart persists across sessions using AsyncStorage
 * **Checkout Flow** — Payment method selection, delivery time options, order placement
-* **Authentication** — Custom JWT auth with secure password hashing
-* **Input Validation** — Zod schemas for form validation and type safety
+* **Authentication** — JWT auth with secure password hashing (bcryptjs)
 * **CI/CD Pipeline** — Automated testing and deployment with GitHub Actions
 
 ## Tech Stack
 
+### Frontend (Expo App)
 * **Framework:** Expo SDK 54 + React Native 0.81
 * **Navigation:** Expo Router (file-based routing)
 * **State:** Zustand with AsyncStorage persistence
-* **Database:** CockroachDB (PostgreSQL-compatible distributed SQL)
-* **ORM:** Prisma
-* **Auth:** Custom JWT with bcryptjs
-* **Validation:** Zod
-* **Language:** TypeScript
+* **HTTP:** Fetch API
+
+### Backend (Server)
+* **Runtime:** Node.js + Express
+* **ORM:** Prisma 7 with `@prisma/adapter-pg`
+* **Database:** CockroachDB (PostgreSQL-compatible)
+* **Auth:** JWT via `jose` + `bcryptjs`
 
 ## Getting Started
 
 ### Prerequisites
-
 * Node.js 20.19.x or higher
-* npm or yarn
-* Expo Go app (iOS/Android)
-* CockroachDB cluster (free tier available at cockroachlabs.com)
+* CockroachDB cluster (free tier at cockroachlabs.com)
 
-### Installation
+### 1. Backend Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/ogc16/v0-e-commerce-app.git
-cd v0-e-commerce-app
-
-# Install dependencies
-npm install --legacy-peer-deps
-
-# Copy environment variables
-cp .env.example .env
-
-# Generate Prisma client
+cd server
+npm install
+cp ../.env.example ../.env  # Edit with your CockroachDB URL
 npx prisma generate
-
-# Run database migrations
 npx prisma db push
+npx tsx seed.ts              # Optional: seed sample products
+npm run dev                  # Starts on http://localhost:3001
+```
 
-# Start the app
+### 2. Frontend Setup
+
+```bash
+# From project root
+npm install --legacy-peer-deps
 npx expo start
 ```
 
 ### Environment Variables
 
-Create a `.env` file with your CockroachDB credentials:
-
+**`.env` (root)** — Used by both frontend and backend:
 ```env
-DATABASE_URL="postgresql://user:password@host:26257/shopease?sslmode=require"
+EXPO_PUBLIC_API_URL=http://localhost:3001
+PORT=3001
+DATABASE_URL="postgresql://user:pass@host:26257/defaultdb?sslmode=verify-full"
 JWT_SECRET="your-super-secret-jwt-key-change-this"
 ```
 
 ## Project Structure
 
 ```
-app/
-  (tabs)/
-    index.tsx          # Home screen
-    search.tsx         # Search with filters
-    cart.tsx           # Cart management
-    profile.tsx        # User profile
-  product/[id].tsx     # Product detail
-  category/[id].tsx    # Category listing
-  checkout.tsx         # Checkout flow
+app/                    # Expo Router screens
+  (tabs)/               # Tab navigation
+    index.tsx           # Home screen
+    search.tsx          # Search with filters
+    cart.tsx            # Cart management
+    profile.tsx         # User profile
+  product/[id].tsx      # Product detail
+  category/[id].tsx     # Category listing
+  checkout.tsx          # Checkout flow
 components/
-  ProductCard.tsx      # Reusable product card
+  ProductCard.tsx       # Reusable product card
 lib/
-  prisma.ts           # Prisma client
-  api.ts              # Database API functions
-  auth.tsx            # Authentication context
-  auth-utils.ts       # JWT + password utilities
-data/
-  seed.ts             # Database seed script
+  api.ts               # HTTP client for backend API
+  auth.tsx             # React AuthProvider context
+  auth-utils.ts        # Token storage + auth HTTP calls
 store/
-  cart-store.ts       # Zustand cart with persistence
-prisma/
-  schema.prisma       # Database schema
+  cart-store.ts        # Zustand cart with persistence
+server/                 # Express backend
+  index.ts             # API routes + server setup
+  seed.ts              # Database seed script
+  prisma/
+    schema.prisma      # Database schema
 ```
 
-## Database Schema
+## API Endpoints
 
-### Users
-* id, email (unique), password (hashed), name, phone, timestamps
-
-### Products
-* id, name, description, price, image, category, rating, stock, timestamps
-
-### Orders
-* id, user_id, items (JSON), total, status, shipping_address, payment_method, timestamps
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Create account |
+| POST | `/api/auth/signin` | Sign in |
+| GET | `/api/auth/me` | Get current user (auth) |
+| GET | `/api/products` | List products |
+| GET | `/api/products/search?q=` | Search products |
+| GET | `/api/products/:id` | Get product by ID |
+| POST | `/api/orders` | Create order (auth) |
+| GET | `/api/orders` | Get user orders (auth) |
 
 ## CI/CD
 
-GitHub Actions workflow runs on every push/PR:
-
+GitHub Actions runs on every push/PR:
 1. **Type Checking** — TypeScript compilation
 2. **Expo Doctor** — Dependency compatibility
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## License
 

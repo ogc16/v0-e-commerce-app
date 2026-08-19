@@ -4,7 +4,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { getProducts, categories } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
 import { Feather } from '@expo/vector-icons';
-import type { Product } from '@prisma/client';
+import type { Product } from '@/lib/api';
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

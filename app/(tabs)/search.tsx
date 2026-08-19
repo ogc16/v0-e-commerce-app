@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { ProductCard } from '@/components/ProductCard';
 import { router } from 'expo-router';
 import { searchProducts, getProducts, categories } from '@/lib/api';
-import type { Product } from '@prisma/client';
+import type { Product } from '@/lib/api';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');

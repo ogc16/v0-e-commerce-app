@@ -13,7 +13,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { getProductById, categories } from '@/lib/api';
 import { useCartStore } from '@/store/cart-store';
-import type { Product } from '@prisma/client';
+import type { Product } from '@/lib/api';
 
 const { width } = Dimensions.get('window');
 
