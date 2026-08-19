@@ -22,7 +22,7 @@
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
-    "jsonwebtoken": "^9.0.3",
+    "jose": "^6.2.9",
     "pg": "^8.23.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -39,7 +39,6 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.23.1",
     "@types/react": "~19.1.10",
     "babel-preset-expo": "~54.0.10",

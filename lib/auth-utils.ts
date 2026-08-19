@@ -1,12 +1,14 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { prisma } from './prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+);
 const TOKEN_KEY = 'auth_token';
 
-export interface JWTPayload {
+export interface AuthPayload {
   userId: string;
   email: string;
 }
@@ -19,13 +21,18 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export function signToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+export async function signToken(payload: AuthPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(JWT_SECRET);
 }
 
-export function verifyToken(token: string): JWTPayload | null {
+export async function verifyToken(token: string): Promise<AuthPayload | null> {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as AuthPayload;
   } catch {
     return null;
   }
@@ -56,7 +63,7 @@ export async function signUp(email: string, password: string, name?: string) {
     select: { id: true, email: true, name: true, phone: true },
   });
 
-  const token = signToken({ userId: user.id, email: user.email });
+  const token = await signToken({ userId: user.id, email: user.email });
   await saveToken(token);
 
   return { user, token };
@@ -73,7 +80,7 @@ export async function signIn(email: string, password: string) {
     throw new Error('Invalid email or password');
   }
 
-  const token = signToken({ userId: user.id, email: user.email });
+  const token = await signToken({ userId: user.id, email: user.email });
   await saveToken(token);
 
   return { user: { id: user.id, email: user.email, name: user.name, phone: user.phone }, token };
@@ -87,7 +94,7 @@ export async function getCurrentUser() {
   const token = await getToken();
   if (!token) return null;
 
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) return null;
 
   const user = await prisma.user.findUnique({
