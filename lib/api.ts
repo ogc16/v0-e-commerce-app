@@ -4,6 +4,14 @@ import { Database } from './types';
 type Product = Database['public']['Tables']['products']['Row'];
 type Order = Database['public']['Tables']['orders']['Row'];
 
+const categories = [
+  { id: 'household', name: 'Household', icon: 'home', color: '#3B82F6' },
+  { id: 'grocery', name: 'Grocery', icon: 'shopping-bag', color: '#10B981' },
+  { id: 'fastfood', name: 'Fast Food', icon: 'coffee', color: '#F59E0B' },
+];
+
+export { categories };
+
 export async function getProducts(category?: string): Promise<Product[]> {
   let query = supabase
     .from('products')

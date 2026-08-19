@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,43 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { getProductById, categories } from '@/data/products';
+import { getProductById, categories } from '@/lib/api';
 import { useCartStore } from '@/store/cart-store';
+import { Database } from '@/lib/types';
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 const { width } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const product = getProductById(id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const addToCart = useCartStore((state) => state.addToCart);
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    async function loadProduct() {
+      if (id) {
+        const data = await getProductById(id);
+        setProduct(data);
+        setLoading(false);
+      }
+    }
+    loadProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
 
   if (!product) {
     return (
@@ -132,6 +156,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,

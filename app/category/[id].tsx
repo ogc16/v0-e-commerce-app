@@ -1,13 +1,30 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { categories, getProductsByCategory } from '@/data/products';
+import { getProducts, categories } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
 import { Feather } from '@expo/vector-icons';
+import { Database } from '@/lib/types';
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const category = categories.find((c) => c.id === id);
-  const products = getProductsByCategory(id);
+
+  useEffect(() => {
+    async function loadProducts() {
+      if (id) {
+        const data = await getProducts(id);
+        setProducts(data);
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, [id]);
 
   if (!category) {
     return (
@@ -45,11 +62,15 @@ export default function CategoryScreen() {
         </View>
 
         {/* Products Grid */}
-        <View style={styles.productsGrid}>
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#10B981" style={styles.loader} />
+        ) : (
+          <View style={styles.productsGrid}>
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -95,6 +116,9 @@ const styles = StyleSheet.create({
   categoryCount: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  loader: {
+    marginTop: 40,
   },
   productsGrid: {
     flexDirection: 'row',

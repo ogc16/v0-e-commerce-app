@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,36 +6,44 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { products, categories } from '@/data/products';
 import { ProductCard } from '@/components/ProductCard';
 import { router } from 'expo-router';
+import { searchProducts, getProducts, categories } from '@/lib/api';
+import { Database } from '@/lib/types';
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
-
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    let results: Product[];
+    
     if (searchQuery.trim()) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      results = await searchProducts(searchQuery);
+    } else {
+      results = await getProducts();
     }
-
+    
     if (selectedCategory) {
-      filtered = filtered.filter(
-        (product) => product.category === selectedCategory
-      );
+      results = results.filter((p) => p.category === selectedCategory);
     }
-
-    return filtered;
+    
+    setProducts(results);
+    setLoading(false);
   }, [searchQuery, selectedCategory]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -113,14 +121,16 @@ export default function SearchScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.resultsContainer}
       >
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#10B981" style={styles.loader} />
+        ) : products.length > 0 ? (
           <>
             <Text style={styles.resultsCount}>
-              {filteredProducts.length} product
-              {filteredProducts.length !== 1 ? 's' : ''} found
+              {products.length} product
+              {products.length !== 1 ? 's' : ''} found
             </Text>
             <View style={styles.productsGrid}>
-              {filteredProducts.map((product) => (
+              {products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </View>
@@ -206,6 +216,9 @@ const styles = StyleSheet.create({
   resultsContainer: {
     paddingTop: 16,
     paddingBottom: 20,
+  },
+  loader: {
+    marginTop: 40,
   },
   resultsCount: {
     paddingHorizontal: 20,

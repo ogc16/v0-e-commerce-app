@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,17 +7,37 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { categories, getFeaturedProducts } from '@/data/products';
 import { ProductCard } from '@/components/ProductCard';
+import { getProducts } from '@/lib/api';
+import { Database } from '@/lib/types';
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 const { width } = Dimensions.get('window');
 
+const categories = [
+  { id: 'household', name: 'Household', icon: 'home', color: '#3B82F6' },
+  { id: 'grocery', name: 'Grocery', icon: 'shopping-bag', color: '#10B981' },
+  { id: 'fastfood', name: 'Fast Food', icon: 'coffee', color: '#F59E0B' },
+];
+
 export default function HomeScreen() {
-  const featuredProducts = getFeaturedProducts();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProducts() {
+      const products = await getProducts();
+      setFeaturedProducts(products.filter((p) => p.rating >= 4.7));
+      setLoading(false);
+    }
+    loadProducts();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -102,11 +123,15 @@ export default function HomeScreen() {
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.productsGrid}>
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </View>
+          {loading ? (
+            <ActivityIndicator size="large" color="#10B981" />
+          ) : (
+            <View style={styles.productsGrid}>
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.bottomPadding} />
