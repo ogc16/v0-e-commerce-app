@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Product {
   id: string;
@@ -24,56 +26,64 @@ interface CartStore {
   getItemCount: () => number;
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
-  items: [],
+export const useCartStore = create<CartStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
 
-  addToCart: (product: Product) => {
-    set((state) => {
-      const existingItem = state.items.find((item) => item.id === product.id);
-      if (existingItem) {
-        return {
-          items: state.items.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          ),
-        };
-      }
-      return { items: [...state.items, { ...product, quantity: 1 }] };
-    });
-  },
+      addToCart: (product: Product) => {
+        set((state) => {
+          const existingItem = state.items.find((item) => item.id === product.id);
+          if (existingItem) {
+            return {
+              items: state.items.map((item) =>
+                item.id === product.id
+                  ? { ...item, quantity: item.quantity + 1 }
+                  : item
+              ),
+            };
+          }
+          return { items: [...state.items, { ...product, quantity: 1 }] };
+        });
+      },
 
-  removeFromCart: (productId: string) => {
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== productId),
-    }));
-  },
+      removeFromCart: (productId: string) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.id !== productId),
+        }));
+      },
 
-  updateQuantity: (productId: string, quantity: number) => {
-    set((state) => {
-      if (quantity <= 0) {
-        return { items: state.items.filter((item) => item.id !== productId) };
-      }
-      return {
-        items: state.items.map((item) =>
-          item.id === productId ? { ...item, quantity } : item
-        ),
-      };
-    });
-  },
+      updateQuantity: (productId: string, quantity: number) => {
+        set((state) => {
+          if (quantity <= 0) {
+            return { items: state.items.filter((item) => item.id !== productId) };
+          }
+          return {
+            items: state.items.map((item) =>
+              item.id === productId ? { ...item, quantity } : item
+            ),
+          };
+        });
+      },
 
-  clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [] }),
 
-  getTotal: () => {
-    const state = get();
-    return state.items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-  },
+      getTotal: () => {
+        const state = get();
+        return state.items.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        );
+      },
 
-  getItemCount: () => {
-    const state = get();
-    return state.items.reduce((count, item) => count + item.quantity, 0);
-  },
-}));
+      getItemCount: () => {
+        const state = get();
+        return state.items.reduce((count, item) => count + item.quantity, 0);
+      },
+    }),
+    {
+      name: 'cart-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
